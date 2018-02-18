@@ -1,0 +1,22 @@
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.sine {
+background-color: lightgreen;
+height: 25%;
+}
+.square {
+  background-color: lightyellow;
+  height: 25%;
+}
+.triangle {
+  background-color: lightpink;
+  height: 25%;
+}
+.sawtooth {
+  background-color: lightcyan;
+  height: 25%;
+}
