@@ -1,45 +1,17 @@
 
-class Sound {
-    constructor(context) {
-        this.context = context;
-    }
-    init() {
-        this.oscillator = this.context.createOscillator();
-        this.gainNode = this.context.createGain();
-
-        this.oscillator.connect(this.gainNode);
-        this.gainNode.connect(this.context.destination);
-        // this.oscillator.type = 'sine';
-    }
-    play(value, time) {
-        this.init();
-
-        this.oscillator.type = value;
-        // this.oscillator.frequency.value = value;
-        this.gainNode.gain.setValueAtTime(1, this.context.currentTime);
-
-        this.oscillator.start(time);
-        this.stop(time);
-    }
-    stop(time) {
-        this.gainNode.gain.exponentialRampToValueAtTime(0.001, time + 5);
-        this.oscillator.stop(time + 5);
-        
-    }
-
-}
-
-
 // create audio context
 var context = new (window.AudioContext || window.webkitAudioContext)();
-
-var note = new Sound(context);
-var now = context.currentTime;
 
 var cardOne;
 var cardTwo;
 var noteOne;
 var noteTwo;
+
+var audioDuration = 2; // audio sample duration in seconds
+
+var score = document.getElementById("score"); // grab scoreboard from html
+var scoreCount = 0;
+score.innerHTML = scoreCount;
 
 // grab cards from html
 var sine = document.getElementById("sine");
@@ -56,38 +28,39 @@ var sound = document.getElementById("sound");
 var sound_02 = document.getElementById("sound_02");
 
 
-// make cards clickable
-sine.addEventListener('click', function () { flipCard(sine, "sine") });
-sine_02.addEventListener('click', function () { flipCard(sine_02, "sine") });
-square.addEventListener('click', function () { flipCard(square, "square") });
-square_02.addEventListener('click', function () { flipCard(square_02, "square") });
-triangle.addEventListener('click', function () { flipCard(triangle, "triangle") });
-triangle_02.addEventListener('click', function () { flipCard(triangle_02, "triangle") });
-sawtooth.addEventListener('click', function () { flipCard(sawtooth, "sawtooth") });
-sawtooth_02.addEventListener('click', function () { flipCard(sawtooth_02, "sawtooth") });
-noise.addEventListener('click', function () { flipCard(noise) });
-noise_02.addEventListener('click', function () { flipCard(noise_02) });
-sound.addEventListener('click', function () { flipCard(sound) });
-sound_02.addEventListener('click', function () { flipCard(sound_02) });
+/* make cards clickable and assign each card
+an oscillator waveform and frequency */
+sine.addEventListener('click', function () { flipCard(sine, "sine", 440) });
+sine_02.addEventListener('click', function () { flipCard(sine_02, "sine", 440) });
+square.addEventListener('click', function () { flipCard(square, "square", 440) });
+square_02.addEventListener('click', function () { flipCard(square_02, "square", 440) });
+triangle.addEventListener('click', function () { flipCard(triangle, "triangle", 440) });
+triangle_02.addEventListener('click', function () { flipCard(triangle_02, "triangle", 440) });
+sawtooth.addEventListener('click', function () { flipCard(sawtooth, "sawtooth", 440) });
+sawtooth_02.addEventListener('click', function () { flipCard(sawtooth_02, "sawtooth", 440) });
+noise.addEventListener('click', function () { flipCard(noise, "sawtooth", 100) });
+noise_02.addEventListener('click', function () { flipCard(noise_02, "sawtooth", 100) });
+sound.addEventListener('click', function () { flipCard(sound, "sine", 600) });
+sound_02.addEventListener('click', function () { flipCard(sound_02, "sine", 600) });
 
 
-// flip card, play audio sample and check for match
-function flipCard(card, sample) {
+// flip card and play audio sample
+function flipCard(card, type, value) {
     if (cardOne == undefined) {
         card.style.backgroundColor = "white";
+        card.style.backgroundImage = "url(images/note_01.png)";
         cardOne = card;
-        note.play(sample, now)
-        noteOne = sample;
-        console.log("flipped");
-    } else if (cardTwo == undefined) {
+        noteOne = type + value;
+        play(type, value);
+    } else if (cardTwo == undefined && card != cardOne) {
         card.style.backgroundColor = "white";
+        card.style.backgroundImage = "url(images/note_01.png)";
         cardTwo = card;
-        note.play(sample, now);
-        noteTwo = sample;
-        checkMatch();
+        noteTwo = type + value;
+        play(type, value);
     }
 }
-
+// remove cards if audio samples match, else flip cards back
 function checkMatch() {
     if (noteOne == noteTwo) {
         cardOne.style.visibility = "hidden";
@@ -96,8 +69,43 @@ function checkMatch() {
         cardTwo = undefined;
         noteOne = undefined;
         noteTwo = undefined;
-    // } else {
-    //     cardOne.style.backgroundColor = "#40e2ff";
-    //     cardTwo.style.backgroundColor = "#40e2ff";
+        } else {
+        cardOne.style.backgroundImage = "none";
+        cardTwo.style.backgroundImage = "none";
+        cardOne.style.backgroundColor = "#40e2ff";
+        cardTwo.style.backgroundColor = "#40e2ff";
+        cardOne = undefined;
+        cardTwo = undefined;
+        noteOne = undefined;
+        noteTwo = undefined;
+        scoreCount += 2; // add two points if cards don't match
+        score.innerHTML = scoreCount;
+
     }
+}
+
+function play(type, value) {
+
+    // create oscillator and volume nodes
+    var note = context.createOscillator();
+    var volume = context.createGain();
+
+    var now = context.currentTime;
+
+    volume.connect(context.destination); // connect volume to destination
+    note.frequency.value = value;
+    note.type = type;
+    note.connect(volume); // connect oscillator to volume 
+    volume.gain.setValueAtTime(1, context.currentTime);
+    note.start();
+    volume.gain.exponentialRampToValueAtTime(0.001, now + audioDuration); // fade out audio
+    note.stop(now + audioDuration);
+
+    // if two cards are flipped, check for match when audio stops
+    if (cardTwo != undefined) {
+        note.onended = function () {
+            checkMatch();
+        }
+    }
+
 }

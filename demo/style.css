@@ -4,7 +4,11 @@ html, body {
     height: 100%;
     margin: 0;
     background-color: rgb(238, 238, 238);
-  }
+    -webkit-user-select: none; /* Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+/Edge */
+    user-select: none; /* Standard */
+}
 .farWrapper {
     display: flex;
     flex-wrap: wrap;
@@ -12,8 +16,16 @@ html, body {
     align-items: center;
     height:100%;
 }
+p {
+    margin: 0px 0px 15px 10px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.score {
+    background-color: white;
+    padding: 4px;
+    border-radius: 4px;
 
-
+}
 .card {
     min-width: 80px;
     min-height: 80px;
